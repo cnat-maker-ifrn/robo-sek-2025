@@ -6,58 +6,69 @@ from pybricks.tools import wait, StopWatch, DataLog
 from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
 from math import pi
+from random import randint
 
+EV3 = EV3Brick()
 
-# This program requires LEGO EV3 MicroPython v2.0 or higher.
-# Click "Open user guide" on the EV3 extension tab for more information.
+MOTOR_CENTRAL = Motor(Port.A)
+MOTOR_ESQUERDO = Motor(Port.C)
+MOTOR_DIREITO = Motor(Port.B)
 
+# SENSOR_COR_ESQUERDO = ColorSensor(Port.S1)
+# SENSOR_COR_DIREITO = ColorSensor(Port.S2)
 
-# Create your objects here.
-ev3 = EV3Brick()
+POTENCIA = 100
+POTENCIA_MIN = 50   
+POTENCIA_MAX = 200
 
-# Motores
-motorC = Motor(Port.A)
-motorL = Motor(Port.B)
-motorR = Motor(Port.C)
+def andar_cm(distancia_cm, velocidade=200):
+    """
+    Versão com compensação de peso (ajuste empírico).
+    peso_kg: Peso aproximado do robô em quilogramas.
+    """
+    diametro_roda = 4.8  # cm
+    circunferencia = pi * diametro_roda
+    rotacoes = distancia_cm / circunferencia
+    
+    angulo = rotacoes * 360
+    
+    MOTOR_DIREITO.reset_angle(0)
+    MOTOR_ESQUERDO.reset_angle(0)
 
+    MOTOR_ESQUERDO.run_angle(velocidade, angulo, wait=False)
+    MOTOR_DIREITO.run_angle(velocidade, angulo, wait=True)
+    
+    MOTOR_ESQUERDO.hold()
+    MOTOR_DIREITO.hold()
 
-# Sensores
-sensorCorR = ColorSensor(Port.S1)
-sensorCorL = ColorSensor(Port.S2)
-# SensorUltrassom = UltrasonicSensor(Port.S3)
+def girar_graus(angulo, velocidade=200):
+    """
+    Gira o robô em torno do seu eixo vertical.
+    angulo: Ângulo em graus para girar (positivo para direita, negativo para esquerda).
+    velocidade: Velocidade de rotação dos motores.
+    """
+    MOTOR_CENTRAL.reset_angle(0)
+    MOTOR_DIREITO.reset_angle(0)
+    MOTOR_ESQUERDO.reset_angle(0)
 
-# controle dos motor
-ganho = 2.0
-potencia = 100
-potencia_min = 50   
-potencia_max = 200
+    # Usa o valor absoluto do ângulo para cálculo
+    angulo_abs = abs(angulo) * pi
+    
+    if angulo > 0:  # Direita (horário)
+        print("Girando para a direita")
+        MOTOR_ESQUERDO.run_angle(velocidade, angulo_abs, wait=False)
+        MOTOR_DIREITO.run_angle(velocidade, -angulo_abs, wait=False)
+        MOTOR_CENTRAL.run_angle(velocidade, -angulo_abs, wait=True)
+    else:  # Esquerda (anti-horário)
+        print("Girando para a esquerda")
+        MOTOR_ESQUERDO.run_angle(velocidade, -angulo_abs, wait=False)
+        MOTOR_DIREITO.run_angle(velocidade, angulo_abs, wait=False)
+        MOTOR_CENTRAL.run_angle(velocidade, angulo_abs, wait=True)
+    
+    MOTOR_ESQUERDO.hold()
+    MOTOR_DIREITO.hold()
+    MOTOR_CENTRAL.hold()
 
-# Função seguir linha
-def seguir_linha():
-    while True:
-        refL = sensorCorL.reflection()
-        refR = sensorCorR.reflection()
-
-        if refL is None or refR is None:
-            ev3.speaker.beep()
-            continue
-
-        print("Reflexão Esquerdo: " + str(refL))
-        print("Reflexão Direito:" + str(refR))
-
-        if refL > 20 and refR > 20:
-            motorL.run(potencia_max)
-            motorR.run(potencia_max)
-            motorC.stop()
-        
-        if refL < 8:
-            motorL.run(-potencia_max)
-            motorR.run(potencia_max)
-            motorC.run(potencia_max)
-        
-        if refR < 8:
-            motorL.run(potencia_max)
-            motorR.run(-potencia_max)
-            motorC.run(-potencia_max)
-
-seguir_linha()
+andar_cm(15, velocidade=700)
+girar_graus(90, velocidade=700)
+girar_graus(-180, velocidade=700)
