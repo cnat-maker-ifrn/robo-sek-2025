@@ -1,10 +1,8 @@
 #!/usr/bin/env pybricks-micropython
 from pybricks.hubs import EV3Brick
-from pybricks.ev3devices import (Motor, TouchSensor, ColorSensor, InfraredSensor, UltrasonicSensor, GyroSensor)
-from pybricks.parameters import Port, Stop, Direction, Button, Color
-from pybricks.tools import wait, StopWatch, DataLog
-from pybricks.robotics import DriveBase
-from pybricks.media.ev3dev import SoundFile, ImageFile
+from pybricks.ev3devices import (Motor, ColorSensor, UltrasonicSensor)
+from pybricks.parameters import Port, Stop
+from pybricks.tools import wait
 from math import pi
 from random import randint
 
@@ -18,9 +16,14 @@ class Robo():
         self.sensor_cor_esquerdo = ColorSensor(Port.S1)
         self.sensor_cor_direito = ColorSensor(Port.S2)
         
-        self.potencia = POTENCIA = 100
-        self.potencia_min = POTENCIA_MIN = 50
-        self.potencia_max = POTENCIA_MAX = 200
+        self.potencia = 100
+        self.potencia_min = 50
+        self.potencia_max = 200
+        
+        self.threshold = 10
+        self.adjust_speed = 100
+        self.adjust_angle = -15
+        self.angle = 15  
             
     def andar_cm(self, distancia_cm, velocidade=200):
         """
@@ -69,6 +72,41 @@ class Robo():
         self.motor_esquerdo.hold()
         self.motor_direito.hold()
         self.motor_central.hold()
+    
+    def alinhar(self):
+        while True:
+            refL = self.sensor_cor_esquerdo.reflection()
+            refR = self.sensor_cor_direito.reflection()
+
+            if refL is None or refR is None:
+                self.ev3.speaker.beep()
+                wait(200)
+                continue
+
+        # --- Lado Direito ---
+            if refR < self.threshold:
+                # Se vê preto: faz um único ajuste e para o motor
+                self.motor_direitor.run_angle(self.adjust_speed, self.adjust_angle, then=Stop.HOLD, wait=True)
+                self.motor_esquerdo.stop()  # garante parada completa
+            else:
+                # Se vê claro: faz um único ajuste e para o motor
+                self.motor_direito.run_angle(self.adjust_speed, self.angle, then=Stop.HOLD, wait=True)
+                self.motor_direito.stop()
+
+            # --- Lado Esquerdo ---
+            if refL < self.threshold:
+                self.motor_esquerdo.run_angle(self.adjust_speed, self.adjust_angle, then=Stop.HOLD, wait=True)
+                self.motor_esquerdo.stop()
+            else:
+                self.motor_esquerdo.run_angle(self.adjust_speed, self.angle, then=Stop.HOLD, wait=True)
+                self.motor_esquerdo.stop()
+
+            # --- Geral ---
+            if refL < self.threshold and refR < self.threshold:
+                
+
+            # Pequena pausa antes da próxima leitura
+            wait(10)
 
 
 robo = Robo()
@@ -76,4 +114,4 @@ robo = Robo()
 robo.andar_cm(15, velocidade=700)
 robo.girar_graus(90, velocidade=700)
 robo.girar_graus(-180, velocidade=700)
-    
+robo.alinhar_linha()
