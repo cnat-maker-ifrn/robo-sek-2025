@@ -16,20 +16,19 @@ class Robo():
         self.sensor_cor_esquerdo = ColorSensor(Port.S1)
         self.sensor_cor_direito = ColorSensor(Port.S2)
         
+        # ===== Potencia Motores =====
         self.potencia = 100
         self.potencia_min = 50
         self.potencia_max = 200
-        
+        # ===== Sensor de cor  e velocidades dos Motores =====
         self.threshold = 10
         self.adjust_speed = 100
         self.adjust_angle = -15
         self.angle = 15  
-            
+        # ===== Diametro e Rotação dos motores ===== 
+        
     def andar_cm(self, distancia_cm, velocidade=200):
-        """
-        Versão com compensação de peso (ajuste empírico).
-        peso_kg: Peso aproximado do robô em quilogramas.
-        """
+
         diametro_roda = 4.8  # cm
         circunferencia = pi * diametro_roda
         rotacoes = distancia_cm / circunferencia
@@ -103,6 +102,10 @@ class Robo():
 
             # --- Geral ---
             if refL < self.threshold and refR < self.threshold:
+                self.motor_direito.hold()
+                self.motor_esquerdo.hold(wait=True)
+                
+                self.motor_direito
                 
 
             # Pequena pausa antes da próxima leitura
