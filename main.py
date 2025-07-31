@@ -13,8 +13,8 @@ class Robo():
         self.motor_central = Motor(Port.A)
         self.motor_esquerdo = Motor(Port.C)
         self.motor_direito = Motor(Port.B)
-        self.sensor_cor_esquerdo = ColorSensor(Port.S1)
-        self.sensor_cor_direito = ColorSensor(Port.S2)
+        self.sensor_cor_esquerdo = ColorSensor(Port.S4)
+        self.sensor_cor_direito = ColorSensor(Port.S3)
         
         # ===== Potencia Motores =====
         self.potencia = 100
@@ -85,7 +85,7 @@ class Robo():
         # --- Lado Direito ---
             if refR < self.threshold:
                 # Se vê preto: faz um único ajuste e para o motor
-                self.motor_direitor.run_angle(self.adjust_speed, self.adjust_angle, then=Stop.HOLD, wait=True)
+                self.motor_direito.run_angle(self.adjust_speed, self.adjust_angle, then=Stop.HOLD, wait=True)
                 self.motor_esquerdo.stop()  # garante parada completa
             else:
                 # Se vê claro: faz um único ajuste e para o motor
@@ -100,21 +100,19 @@ class Robo():
                 self.motor_esquerdo.run_angle(self.adjust_speed, self.angle, then=Stop.HOLD, wait=True)
                 self.motor_esquerdo.stop()
 
-            # --- Geral ---
             if refL < self.threshold and refR < self.threshold:
+                self.motor_esquerdo.hold()
                 self.motor_direito.hold()
-                self.motor_esquerdo.hold(wait=True)
+                print("Alinhado com a linha.")
+                break  # Sai do loop
+        
+            wait(10) 
                 
-                self.motor_direito
                 
-
-            # Pequena pausa antes da próxima leitura
-            wait(10)
-
-
+                
 robo = Robo()
 
 robo.andar_cm(15, velocidade=700)
 robo.girar_graus(90, velocidade=700)
 robo.girar_graus(-180, velocidade=700)
-robo.alinhar_linha()
+robo.alinhar()
